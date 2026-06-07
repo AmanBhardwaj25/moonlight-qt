@@ -122,10 +122,6 @@ private:
     int m_FramesIn;
     int m_FramesOut;
 
-    int m_AudioTuneMessageTimer;
-    Uint32 m_MaxCapWarningLastMs;
-    bool m_AudioStatusOwned;
-
     int m_LastFrameNumber;
     int m_StreamFps;
     int m_OriginalVideoWidth;
