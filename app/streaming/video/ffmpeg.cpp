@@ -2,7 +2,6 @@
 #include "ffmpeg.h"
 #include "utils.h"
 #include "streaming/session.h"
-#include "../../settings/streamingpreferences.h"
 #include "../audio/renderers/sdl.h"
 
 #include <h264_stream.h>
@@ -232,6 +231,9 @@ FFmpegVideoDecoder::FFmpegVideoDecoder(bool testOnly)
       m_BwTracker(10, 250),
       m_FramesIn(0),
       m_FramesOut(0),
+      m_AudioTuneMessageTimer(0),
+      m_MaxCapWarningLastMs(0),
+      m_AudioStatusOwned(false),
       m_LastFrameNumber(0),
       m_StreamFps(0),
       m_VideoFormat(0),
@@ -979,9 +981,9 @@ void FFmpegVideoDecoder::stringifyVideoStats(VIDEO_STATS& stats, char* output, i
 
     ret = snprintf(&output[offset],
                    length - offset,
-                   "Audio jitter buffer: %d ms | Queue overflows: %u\n",
-                   StreamingPreferences::get()->audioJitterBufferMs,
-                   SdlAudioRenderer::getQueueOverflowCount());
+                   "Audio jitter buffer: %d ms (auto) | Overflows/3s: %u\n",
+                   SdlAudioRenderer::getCurrentThresholdMs(),
+                   SdlAudioRenderer::getOverflowsLastWindow());
     if (ret < 0 || ret >= length - offset) {
         SDL_assert(false);
         return;
@@ -2034,6 +2036,37 @@ int FFmpegVideoDecoder::submitDecodeUnit(PDECODE_UNIT du)
                                 Session::get()->getOverlayManager().getOverlayText(Overlay::OverlayDebug),
                                 Session::get()->getOverlayManager().getOverlayMaxTextLength());
             Session::get()->getOverlayManager().setOverlayTextUpdated(Overlay::OverlayDebug);
+        }
+
+        // Handle audio auto-tune notifications
+        int oldMs, newMs;
+        if (SdlAudioRenderer::consumeThresholdIncrease(oldMs, newMs)) {
+            char msg[128];
+            snprintf(msg, sizeof(msg),
+                     "Audio jitter buffer: %d ms -> %d ms (reducing crackling)",
+                     oldMs, newMs);
+            Session::get()->getOverlayManager().updateOverlayText(Overlay::OverlayStatusUpdate, msg);
+            Session::get()->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, true);
+            m_AudioTuneMessageTimer = 5;
+            m_AudioStatusOwned = true;
+        }
+        else if (SdlAudioRenderer::consumeMaxCapEvent()) {
+            Uint32 now = SDL_GetTicks();
+            if (now - m_MaxCapWarningLastMs > 60000) {
+                Session::get()->getOverlayManager().updateOverlayText(Overlay::OverlayStatusUpdate,
+                    "Audio jitter buffer at maximum (120 ms) - connection too unstable for clean audio");
+                Session::get()->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, true);
+                m_AudioTuneMessageTimer = 10;
+                m_AudioStatusOwned = true;
+                m_MaxCapWarningLastMs = now;
+            }
+        }
+
+        if (m_AudioStatusOwned && m_AudioTuneMessageTimer > 0) {
+            if (--m_AudioTuneMessageTimer == 0) {
+                Session::get()->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, false);
+                m_AudioStatusOwned = false;
+            }
         }
 
         // Accumulate these values into the global stats
