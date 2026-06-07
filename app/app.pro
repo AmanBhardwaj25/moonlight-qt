@@ -161,8 +161,12 @@ macx {
         CONFIG += discord-rpc
     }
 
-    LIBS += -lobjc -framework VideoToolbox -framework AVFoundation -framework CoreVideo -framework CoreGraphics -framework CoreMedia -framework AppKit -framework Metal -framework QuartzCore
+    LIBS += -lobjc -framework VideoToolbox -framework AVFoundation -framework CoreVideo -framework CoreGraphics -framework CoreMedia -framework AppKit -framework Metal -framework QuartzCore -framework ServiceManagement
     CONFIG += ffmpeg
+
+    SOURCES += awdl/AWDLManager.mm
+
+    HEADERS += awdl/AWDLManager.h
 }
 
 SOURCES += \
@@ -563,6 +567,10 @@ macx {
     APP_BUNDLE_PLIST.path = Contents
 
     QMAKE_BUNDLE_DATA += APP_BUNDLE_RESOURCES APP_BUNDLE_PLIST
+
+    AWDL_HELPER_PLIST.files = awdl/helper/com.moonlight-stream.MoonlightAWDLHelper.plist
+    AWDL_HELPER_PLIST.path = Contents/Library/LaunchDaemons
+    QMAKE_BUNDLE_DATA += AWDL_HELPER_PLIST
 
     !disable-prebuilts {
         APP_BUNDLE_FRAMEWORKS.files = $$files(../libs/mac/Frameworks/*.framework, true) $$files(../libs/mac/lib/*.dylib, true)

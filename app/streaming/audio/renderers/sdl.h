@@ -21,6 +21,7 @@ public:
     virtual AudioFormat getAudioBufferFormat();
 
     static uint32_t getQueueOverflowCount() { return s_QueueOverflowCount.load(std::memory_order_relaxed); }
+    static uint32_t getQueueOverflowWindowStartMs() { return s_QueueOverflowWindowStartMs.load(std::memory_order_relaxed); }
 
 private:
     SDL_AudioDeviceID m_AudioDevice;
@@ -30,4 +31,5 @@ private:
     int m_JitterBufferMs;
 
     static std::atomic<uint32_t> s_QueueOverflowCount;
+    static std::atomic<uint32_t> s_QueueOverflowWindowStartMs;
 };

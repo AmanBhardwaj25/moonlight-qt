@@ -3,6 +3,10 @@
 #include "streaming/streamutils.h"
 #include "backend/richpresencemanager.h"
 
+#ifdef Q_OS_DARWIN
+#include "awdl/AWDLManager.h"
+#endif
+
 #include <Limelight.h>
 #include "SDL_compat.h"
 #include "utils.h"
@@ -1274,6 +1278,10 @@ private:
         // Finish cleanup of the connection state
         LiStopConnection();
 
+#ifdef Q_OS_DARWIN
+        AWDLManager::instance().restore();
+#endif
+
         // Perform a best-effort app quit
         if (shouldQuit) {
             NvHTTP http(m_Session->m_Computer);
@@ -1686,12 +1694,22 @@ bool Session::startConnectionAsync()
                                                                          false);
     }
 
+#ifdef Q_OS_DARWIN
+    if (m_Preferences->suppressAwdlOnStream) {
+        AWDLManager::instance().ensureHelperInstalled();
+        AWDLManager::instance().suppress();
+    }
+#endif
+
     int err = LiStartConnection(&hostInfo, &m_StreamConfig, &k_ConnCallbacks,
                                 &m_VideoCallbacks, &m_AudioCallbacks,
                                 NULL, 0, NULL, 0);
     if (err != 0) {
         // We already displayed an error dialog in the stage failure
         // listener.
+#ifdef Q_OS_DARWIN
+        AWDLManager::instance().restore();
+#endif
         return false;
     }
 

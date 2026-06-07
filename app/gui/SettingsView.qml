@@ -1775,6 +1775,25 @@ Flickable {
                                   qsTr("You can toggle it at any time while streaming using Ctrl+Alt+Shift+S or Select+L1+R1+X.") + "\n\n" +
                                   qsTr("The performance overlay is not supported on Steam Link or Raspberry Pi.")
                 }
+
+                CheckBox {
+                    id: suppressAwdlOnStream
+                    width: parent.width
+                    visible: Qt.platform.os === "osx"
+                    text: qsTr("Suppress AWDL (AirDrop/Handoff) while streaming")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.suppressAwdlOnStream
+                    onCheckedChanged: {
+                        StreamingPreferences.suppressAwdlOnStream = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Disables AWDL (the interface used by AirDrop, Handoff, and Sidecar) for the duration of a stream.") + "\n\n" +
+                                  qsTr("This can reduce wireless interference and improve streaming stability on Wi-Fi.") + "\n\n" +
+                                  qsTr("You can also toggle it mid-stream with Ctrl+Alt+Shift+A. Requires a one-time system authorization prompt.")
+                }
             }
         }
     }

@@ -979,7 +979,7 @@ void FFmpegVideoDecoder::stringifyVideoStats(VIDEO_STATS& stats, char* output, i
 
     ret = snprintf(&output[offset],
                    length - offset,
-                   "Audio jitter buffer: %d ms | Queue overflows: %u\n",
+                   "Audio jitter buffer: %d ms | Queue overflows (15 min): %u\n",
                    StreamingPreferences::get()->audioJitterBufferMs,
                    SdlAudioRenderer::getQueueOverflowCount());
     if (ret < 0 || ret >= length - offset) {
