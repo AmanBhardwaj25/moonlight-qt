@@ -53,6 +53,11 @@ Rather than requiring manual tuning, the buffer will tune itself automatically:
 
 macOS (Apple Silicon) builds are available on the [Releases](../../releases) page.
 
+> **First launch:** macOS will say the app is "damaged" because this build is not signed with an Apple Developer certificate. To open it, run once in Terminal:
+> ```
+> xattr -dr com.apple.quarantine /Applications/Moonlight.app
+> ```
+
 For other platforms or unmodified builds, use the official [moonlight-stream/moonlight-qt](https://github.com/moonlight-stream/moonlight-qt/releases) releases.
 
 ---
