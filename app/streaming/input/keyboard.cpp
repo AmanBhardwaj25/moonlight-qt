@@ -3,6 +3,22 @@
 #include <Limelight.h>
 #include "SDL_compat.h"
 
+#ifdef Q_OS_DARWIN
+#include "awdl/AWDLManager.h"
+
+static SDL_TimerID s_AwdlOverlayDismissTimer = 0;
+
+static Uint32 awdlOverlayDismissCallback(Uint32 /*interval*/, void* /*param*/)
+{
+    s_AwdlOverlayDismissTimer = 0;
+    Session* session = Session::get();
+    if (session) {
+        session->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, false);
+    }
+    return 0; // don't repeat
+}
+#endif
+
 #define VK_0 0x30
 #define VK_A 0x41
 
@@ -167,6 +183,24 @@ void SdlInputHandler::performSpecialKeyCombo(KeyCombo combo)
 
         updateKeyboardGrabState();
         break;
+
+#ifdef Q_OS_DARWIN
+    case KeyComboToggleAWDLSuppression:
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Detected AWDL suppression toggle combo");
+        {
+            bool nowSuppressed = AWDLManager::instance().toggle();
+            const char* msg = nowSuppressed ? "AWDL suppression active" : "AWDL suppression inactive";
+            Session::get()->getOverlayManager().updateOverlayText(Overlay::OverlayStatusUpdate, msg);
+            Session::get()->getOverlayManager().setOverlayState(Overlay::OverlayStatusUpdate, true);
+
+            if (s_AwdlOverlayDismissTimer) {
+                SDL_RemoveTimer(s_AwdlOverlayDismissTimer);
+            }
+            s_AwdlOverlayDismissTimer = SDL_AddTimer(5000, awdlOverlayDismissCallback, nullptr);
+        }
+        break;
+#endif
 
     default:
         Q_UNREACHABLE();

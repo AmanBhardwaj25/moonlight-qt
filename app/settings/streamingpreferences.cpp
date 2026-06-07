@@ -51,6 +51,8 @@
 #define SER_CAPTURESYSKEYS "capturesyskeys"
 #define SER_KEEPAWAKE "keepawake"
 #define SER_LANGUAGE "language"
+#define SER_AUDIOJITTERBUFFER "audiojitterbufferms"
+#define SER_SUPPRESS_AWDL "suppressawdlonstream"
 
 #define CURRENT_DEFAULT_VER 2
 
@@ -150,6 +152,8 @@ void StreamingPreferences::reload()
     reverseScrollDirection = settings.value(SER_REVERSESCROLL, false).toBool();
     swapFaceButtons = settings.value(SER_SWAPFACEBUTTONS, false).toBool();
     keepAwake = settings.value(SER_KEEPAWAKE, true).toBool();
+    audioJitterBufferMs = settings.value(SER_AUDIOJITTERBUFFER, 30).toInt();
+    suppressAwdlOnStream = settings.value(SER_SUPPRESS_AWDL, false).toBool();
     enableHdr = settings.value(SER_HDR, false).toBool();
     captureSysKeysMode = static_cast<CaptureSysKeysMode>(settings.value(SER_CAPTURESYSKEYS,
                                                          static_cast<int>(CaptureSysKeysMode::CSK_OFF)).toInt());
@@ -358,6 +362,8 @@ void StreamingPreferences::save()
     settings.setValue(SER_SWAPFACEBUTTONS, swapFaceButtons);
     settings.setValue(SER_CAPTURESYSKEYS, captureSysKeysMode);
     settings.setValue(SER_KEEPAWAKE, keepAwake);
+    settings.setValue(SER_AUDIOJITTERBUFFER, audioJitterBufferMs);
+    settings.setValue(SER_SUPPRESS_AWDL, suppressAwdlOnStream);
 }
 
 int StreamingPreferences::getDefaultBitrate(int width, int height, int fps, bool yuv444)

@@ -939,6 +939,30 @@ Flickable {
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Mutes Moonlight's audio when you Alt+Tab out of the stream or click on a different window.")
                 }
+
+                Label {
+                    width: parent.width
+                    text: qsTr("Audio jitter buffer: %1 ms").arg(StreamingPreferences.audioJitterBufferMs)
+                    font.pointSize: 12
+                    wrapMode: Text.Wrap
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("How much audio can queue up before frames are dropped to catch up. Increase if you hear crackling or stuttering on wireless connections.")
+                }
+
+                Slider {
+                    id: audioJitterBufferSlider
+                    width: parent.width
+                    from: 30
+                    to: 150
+                    stepSize: 10
+                    value: StreamingPreferences.audioJitterBufferMs
+                    onValueChanged: {
+                        StreamingPreferences.audioJitterBufferMs = value
+                    }
+                }
             }
         }
 
@@ -1750,6 +1774,25 @@ Flickable {
                     ToolTip.text: qsTr("Display real-time stream performance information while streaming.") + "\n\n" +
                                   qsTr("You can toggle it at any time while streaming using Ctrl+Alt+Shift+S or Select+L1+R1+X.") + "\n\n" +
                                   qsTr("The performance overlay is not supported on Steam Link or Raspberry Pi.")
+                }
+
+                CheckBox {
+                    id: suppressAwdlOnStream
+                    width: parent.width
+                    visible: Qt.platform.os === "osx"
+                    text: qsTr("Suppress AWDL (AirDrop/Handoff) while streaming")
+                    font.pointSize: 12
+                    checked: StreamingPreferences.suppressAwdlOnStream
+                    onCheckedChanged: {
+                        StreamingPreferences.suppressAwdlOnStream = checked
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Disables AWDL (the interface used by AirDrop, Handoff, and Sidecar) for the duration of a stream.") + "\n\n" +
+                                  qsTr("This can reduce wireless interference and improve streaming stability on Wi-Fi.") + "\n\n" +
+                                  qsTr("You can also toggle it mid-stream with Ctrl+Alt+Shift+A. Requires a one-time system authorization prompt.")
                 }
             }
         }
